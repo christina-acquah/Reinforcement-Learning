@@ -121,11 +121,11 @@ class Dyna_Q_Agent(object):
             action = np.random.choice(self.action_space)
         return action
     
-    def planning(self,n_steps):  
+    def planning(self,n_steps): 
         for i in range(n_steps):
-            (state,action) = np.random.choice(self.model.keys()) 
+            (state,action) = list(self.model.keys())[np.random.choice(np.arange(len(self.model.keys())))] 
             experience_list=self.model[(state,action)]
-            (next_state,reward)= np.random.choice(experience_list)
+            (next_state,reward)= experience_list[np.random.choice(np.arange(len(experience_list)))]
             self.update_dyna_q_table(state,action,reward,next_state)
          
                  
@@ -137,7 +137,7 @@ class Dyna_Q_Agent(object):
         new_dyna_q        = current_dyna_q + self.learning_rate*(reward+self.discount*max_future_dyna_q-current_dyna_q)
         self.dyna_q_table[current_state, current_action] = new_dyna_q        
     
-    def navigate(self, gw_obst, num_episodes, random_start=False, start=0):
+    def navigate(self, gw_obst, num_episodes,n_steps, random_start=False, start=0):
         # set how we will decay the randomness of action selection over the course of training
         start_eps_decay = 1
         end_eps_decay = num_episodes//2
@@ -146,6 +146,7 @@ class Dyna_Q_Agent(object):
         # initialize empty list for keeping track of rewards achieved per episode
         reward_tracking=[]
         max_steps= 1000
+        
 
         for episode in range(num_episodes):
             gw_obst.reset()
@@ -175,6 +176,8 @@ class Dyna_Q_Agent(object):
                 else:
                     self.dyna_q_table[state, action] = 0
                     break
+                
+                self.planning(n_steps)
                 state=next_state
 
             reward_tracking.append(total_reward)
